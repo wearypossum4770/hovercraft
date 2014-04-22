@@ -1,8 +1,9 @@
 import os
 import shutil
 from lxml import etree, html
-from pkg_resources import resource_string
+from pkg_resources import resource_string, resource_exists
 
+from hovercraft import HOVERCRAFT_DIR
 from .parse import rst2xml, SlideMaker
 from .position import position_slides
 from .template import CSS_RESOURCE
@@ -17,8 +18,17 @@ class ResourceResolver(etree.Resolver):
     
 def rst2html(filepath, template_info, auto_console=False, skip_help=False, skip_notes=False):
     # Read the infile
-    with open(filepath, 'rb') as infile:
-        rststring = infile.read()
+    if os.path.exists(filepath):
+        with open(filepath, 'rb') as infile:
+            rststring = infile.read()
+    else:
+        if not os.path.abspath(filepath).startswith(HOVERCRAFT_DIR):
+            raise ValueError("File path %s does not exist" % filepath)
+        if filepath[0] == '/':
+            # Absolute path:
+            filepath = filepath[len(HOVERCRAFT_DIR):]
+            
+        rststring = resource_string('hovercraft', filepath)
         
     presentation_dir = os.path.split(filepath)[0]
     

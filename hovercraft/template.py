@@ -1,9 +1,9 @@
 import os
 import configparser
 import shutil
-from pkg_resources import resource_string, resource_filename
-
+from pkg_resources import resource_string, resource_filename, resource_isdir
 from lxml import etree
+from hovercraft import HOVERCRAFT_DIR
 
 RESOURCE_TYPES = range(3)
 CSS_RESOURCE, JS_RESOURCE, OTHER_RESOURCE = RESOURCE_TYPES
@@ -66,12 +66,28 @@ class Template(object):
             config.read_string(cfg_string)
             self.template_root = None
         else:
-            if os.path.isdir(self.template):
-                self.template_root = self.template
-                config_file = os.path.join(self.template, 'template.cfg')
+            if os.path.exists(self.template):
+                if os.path.isdir(self.template):
+                    self.template_root = self.template
+                    config_file = os.path.join(self.template, 'template.cfg')
+                else:
+                    self.template_root = os.path.split(self.template)[0]
+                    config_file = self.template
             else:
-                self.template_root = os.path.split(self.template)[0]
-                config_file = self.template
+                # It's a resource
+                import pdb;pdb.set_trace()
+                if not os.path.abspath(filepath).startswith(HOVERCRAFT_DIR):
+                    raise ValueError("File path %s does not exist" % filepath)
+                if filepath[0] == '/':
+                    # Absolute path:
+                    filepath = filepath[len(HOVERCRAFT_DIR):]
+                if resource_isdir('hovercraft', filepath):
+                    self.template_root = self.template
+                    config_file = os.path.join(self.template, 'template.cfg')
+                else:
+                    self.template_root = os.path.split(self.template)[0]
+                    config_file = self.template
+                    
             config.read(config_file)
         
         self.config = config['hovercraft']
@@ -139,7 +155,7 @@ class Template(object):
                 return infile.read()
         except NotImplementedError:
             # Zip file! Read the data as binary and write out to the outfile.
-            return resource_string(__name__, self.template + file)
+            return resource_string(__name__, self.template + resource.filepath)
 
     def copy_resource(self, resource, targetdir):
         final_path = resource.final_path()

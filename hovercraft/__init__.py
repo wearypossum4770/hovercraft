@@ -1,3 +1,7 @@
+import os
+
+HOVERCRAFT_DIR = os.path.split(__file__)[0]
+
 def main():
 
     # That the argparse default strings are lowercase is ugly.
