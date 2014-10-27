@@ -19,6 +19,9 @@
     width: 800px;
 }
 
+.impressConsole .step {
+    transition: none;
+}
 
 /* Help popup */
 
