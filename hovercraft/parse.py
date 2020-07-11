@@ -192,10 +192,7 @@ class SlideMaker(object):
         if parent.tag == 'field_body':
             fieldname = parent.getprevious().text
             current = self.curnode.get(fieldname)
-            if current:
-                value = current + ' ' + node.text
-            else:
-                value = node.text
+            value = current + ' ' + node.text if current else node.text
             self.curnode.set(fieldname, value)
         else:
             self.default_start(node)
@@ -225,7 +222,7 @@ class SlideMaker(object):
             # We are currently in a list hierarchy that should have
             # substeps
             classes = node.attrib.get('classes', '')
-            if not 'substep' in classes:
+            if 'substep' not in classes:
                 classes += ' substep'
                 node.attrib['classes'] = classes.strip()
 
